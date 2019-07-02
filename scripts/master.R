@@ -1,6 +1,7 @@
 ###############################################################################
 
-pacman::p_load(doParallel, readr, rstudioapi, dplyr, plotly, corrplot, caret)
+pacman::p_load(doParallel, readr, rstudioapi, dplyr, plotly, corrplot, caret, rpart, rpart.plot, C50,
+               randomForest, e1071, kknn)
 detectCores()
 
 ###############################################################################
@@ -11,7 +12,7 @@ setwd(dirname(dirname(current_path)))
 rm(current_path)
 ###############################################################################
 #Cluster --------------
-cl <- makeCluster(3) #creating a cluster
+cl <- makeCluster(6) #creating a cluster
 registerDoParallel(cl)
 getDoParWorkers()
 
@@ -19,7 +20,8 @@ getDoParWorkers()
 #Import&Preprocessing:
 
 iphone_matrix <- read_csv("datasets/iphone_smallmatrix_labeled_8d.csv")
-
+iphone_matrix$iphonesentiment <- as.factor(iphone_matrix$iphonesentiment)
+iphone_matrix <- distinct(iphone_matrix)
 str(iphone_matrix)
 summary(iphone_matrix)
 sum(is.na(iphone_matrix))
@@ -57,15 +59,58 @@ ctrl <- rfeControl(functions = rfFuncs,
                    repeats = 5,
                    verbose = FALSE)  #train control
 
-# Using rfe and omitting the response variable (attribute 59 iphonesentiment) 
-rfeResults <- rfe(iphoneSample[,1:58], 
-                  iphoneSample$iphonesentiment, 
-                  sizes=(1:58), 
-                  rfeControl=ctrl)
+ctrl2 <- trainControl(sampling = "down",
+                      method = "repeatedcv", repeats = 5)
 
-rfeResults
-plot(rfeResults, type = c("g", "o"))
+trainSet_down <- downSample(x = trainSet, y = trainSet$iphonesentiment) #downsampling the dataset
+
+# Using rfe and omitting the response variable (attribute 59 iphonesentiment) 
+#rfeResults <- rfe(iphoneSample[,1:58], 
+#                  iphoneSample$iphonesentiment, 
+#                  sizes=(1:58), 
+#                  rfeControl=ctrl)
+
+#rfeResults
+#plot(rfeResults, type = c("g", "o"))
+
+#iphoneRFE <- iphone_matrix[,predictors(rfeResults)] #newdf with rfe recommended features
+#iphoneRFE$iphonesentiment <- iphone_matrix$iphonesentiment #adding the dependent variable to iphoneRFE
+#str(iphoneRFE)
+
+
+
 
 ###############################################################################
+###Creating Testing and Training Sets:
+set.seed(123) #a starting point used to create a sequence of random numbers
 
+trainSize<-round(nrow(iphone_matrix)*0.7) #calculating the size of training set (70%)
+testSize<-nrow(iphone_matrix)-trainSize #calculating the size of testing set (30%)
+
+training_indices<-sample(seq_len(nrow(iphone_matrix)),size =trainSize) #creating training and testing datasets
+trainSet<-iphone_matrix[training_indices,]
+testSet<-iphone_matrix[-training_indices,] 
+
+# Decision tree:
+dt <- rpart(iphonesentiment~., data = iphone_matrix, cp = .008)
+rpart.plot(dt, box.palette = "RdBu", shadow.col = "gray", nn = TRUE)
+varImp(dt)
+
+#C50:
+#c50_mod <- C5.0(x = trainSet, y = trainSet$iphonesentiment, control = ctrl2)
+
+#Random Forest:
+set.seed(124)
+rf_mod <- randomForest(iphonesentiment ~ ., data = trainSet, importance = TRUE,
+                       ntree = 100, mtry = 9)
+rf_mod
+
+#SVM:
+svm_mod <- svm(iphonesentiment ~ ., data = trainSet)
+summary(svm_mod)
+
+#kknn:
+kknn_mod <- kknn(iphonesentiment ~ ., train = trainSet, test = testSet )
+summary(kknn_mod)
+###############################################################################
 stopCluster(cl) #stopping the cluster
