@@ -1,11 +1,11 @@
 ###############################################################################
-
-pacman::p_load(doParallel, readr, rstudioapi, dplyr, plotly, corrplot, caret, rpart, rpart.plot, C50,
-               randomForest, e1071, kknn)
+#Libraries/Cores:--------------
+pacman::p_load(doParallel, readr, rstudioapi, dplyr, plotly, corrplot, caret,
+               rpart, rpart.plot, C50, randomForest, e1071, kknn)
 detectCores()
 
 ###############################################################################
-# Github setup ------------------------------------------------------------
+# Github setup --------------
 current_path <- getActiveDocumentContext()$path
 
 setwd(dirname(dirname(current_path)))
@@ -17,40 +17,16 @@ registerDoParallel(cl)
 getDoParWorkers()
 
 ###############################################################################
-#Import&Preprocessing:
+#Import&Preprocessing:--------------
 
 iphone_matrix <- read_csv("datasets/iphone_smallmatrix_labeled_8d.csv")
 galaxy_matrix <- read_csv("datasets/galaxy_smallmatrix_labeled_9d.csv")
-#iphone_matrix <- distinct(iphone_matrix)
-#str(iphone_matrix)
-#summary(iphone_matrix)
-#sum(is.na(iphone_matrix))
 
-#plot_ly(iphone_matrix, x= ~iphone_matrix$iphonesentiment, type='histogram')
-
-
-#M <- cor(iphone_matrix)
-#options(max.print = 1000000)
-#M
-#corrplot(M, method = "circle") #samsunggalaxy and sonyxperia have negative correlations with iphonesentiment
 iphone_matrix$iphonesentiment <- as.factor(iphone_matrix$iphonesentiment)
 galaxy_matrix$galaxysentiment <- as.factor(galaxy_matrix$galaxysentiment)
 
-
-#Feature Variance:
-
-#nzvMetrics <- nearZeroVar(iphone_matrix, saveMetrics = TRUE)
-#nzvMetrics
-
-#nzv <- nearZeroVar(iphone_matrix, saveMetrics = FALSE) #identifying index with newar zero var as a vector
-#nzv
-
-#iphone_matrix <- iphone_matrix[,-nzv] #removing nearzerovar variables
-#str(iphone_matrix)
-
-
 ###############################################################################
-#Feature engineering:
+#Feature engineering:--------------
 iphoneFE <- iphone_matrix
 #iphoneFE$iphonesentiment <- recode(iphoneFE$iphonesentiment, "0" = 1, "1" = 1,
 #                   "2" = 2, "3" = 3, "4" = 4, "5" = 4)
@@ -70,6 +46,7 @@ galaxyFE$galaxysentiment <- as.factor(galaxyFE$galaxysentiment)
 
 
 ###############################################################################
+#Train/Test sets: --------------
 ###Creating Testing and Training Sets: (iphone)
 set.seed(123) #a starting point used to create a sequence of random numbers
 
@@ -101,6 +78,7 @@ training_indices_g<-sample(seq_len(nrow(galaxyFE)),size =trainSize_g) #creating 
 trainSet_g<-galaxyFE[training_indices_g,]
 testSet_g<-galaxyFE[-training_indices_g,] 
 ###############################################################################
+#PCA reduction:--------------
 #PCA:(iphone)
 preprocessParams <- preProcess(trainSet[,-59], method = c("center", "scale", "pca"),
                                thresh = 0.95)
@@ -116,8 +94,9 @@ str(train.pca)
 str(test.pca)
 
 #PCA:(galaxy)
-preprocessParams_g <- preProcess(trainSet_g[,-59], method = c("center", "scale", "pca"),
-                               thresh = 0.95)
+preprocessParams_g <- preProcess(trainSet_g[,-59],
+                                 method = c("center", "scale", "pca"),
+                                 thresh = 0.95)
 print(preprocessParams_g)
 
 train.pca_g <- predict(preprocessParams_g, trainSet_g[,-59])
@@ -130,20 +109,24 @@ str(train.pca_g)
 str(test.pca_g)
 
 #PCA on the whole iphone matrix:(iphone)
-preprocessParams_all <- preProcess(iphoneFE[,-59], method = c("center", "scale", "pca"),
+preprocessParams_all <- preProcess(iphoneFE[,-59], 
+                                   method = c("center", "scale", "pca"),
                                    thresh = 0.95)
+
 iphoneFE.pca <- predict(preprocessParams_all, iphoneFE[,-59])
 iphoneFE.pca$iphonesentiment <- iphoneFE$iphonesentiment
 str(iphoneFE.pca)
 
 #PCA on the whole iphone matrix:(galaxy)
-preprocessParams_all_g <- preProcess(galaxyFE[,-59], method = c("center", "scale", "pca"),
+preprocessParams_all_g <- preProcess(galaxyFE[,-59],
+                                   method = c("center", "scale", "pca"),
                                    thresh = 0.95)
+
 galaxyFE.pca <- predict(preprocessParams_all_g, galaxyFE[,-59])
 galaxyFE.pca$galaxysentiment <- galaxyFE$galaxysentiment
 str(galaxyFE.pca)
 ###############################################################################
-
+#Modelling: --------------
 #Random Forest: (iphone)
 set.seed(432)
 rf_mod <- randomForest(iphonesentiment ~ ., data = train.pca, importance = TRUE,
@@ -163,7 +146,7 @@ rf_postres_g <- postResample(rf_predict_g, test.pca_g$galaxysentiment)
 rf_postres_g
 
 ###############################################################################
-# Applying the model:
+# Applying the model:--------------
 
 LargeMatrix_i <- read_csv("datasets/allfactors.csv")
 LargeMatrix_g <- read_csv("datasets/allfactors.csv")
@@ -213,6 +196,5 @@ iphone_sentiment_level
 galaxy_sentiment_level <- (sum(LargeMatrixPredicted_galaxy$galaxysentiment))/nrow(LargeMatrixPredicted_galaxy)
 galaxy_sentiment_level
 
-# iphone wins
 ###############################################################################
 stopCluster(cl) #stopping the cluster
