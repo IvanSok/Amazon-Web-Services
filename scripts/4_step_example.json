@@ -1,0 +1,60 @@
+[
+{
+"Name": "segment_1474738663308.86_file_00000",
+"ActionOnFailure": "CONTINUE",
+"Jar": "/usr/lib/hadoop-mapreduce/hadoop-streaming.jar",
+"Args":
+[
+"-files", "s3://scriptspdc60austin/decScripts/Mapper.py,s3://scriptspdc60austin/decScripts/Reducer.py",
+"-mapper", "Mapper.py",
+"-reducer", "Reducer.py",
+"-input", "s3://commoncrawl/crawl-data/CC-MAIN-2016-40/segments/1474738663308.86/wet/CC-MAIN-20160924173743-00000-ip-10-143-35-109.ec2.internal.warc.wet.gz",
+"-output", "s3://outputpdc60austin/1474738663308.86_00000",
+"-inputformat", "TextInputFormat"
+]
+}
+,
+{
+"Name": "segment_1474738663308.86_file_00001",
+"ActionOnFailure": "CONTINUE",
+"Jar": "/usr/lib/hadoop-mapreduce/hadoop-streaming.jar",
+"Args":
+[
+"-files", "s3://scriptspdc60austin/decScripts/Mapper.py,s3://scriptspdc60austin/decScripts/Reducer.py",
+"-mapper", "Mapper.py",
+"-reducer", "Reducer.py",
+"-input", "s3://commoncrawl/crawl-data/CC-MAIN-2016-40/segments/1474738663308.86/wet/CC-MAIN-20160924173743-00001-ip-10-143-35-109.ec2.internal.warc.wet.gz",
+"-output", "s3://outputpdc60austin/1474738663308.86_00001",
+"-inputformat", "TextInputFormat"
+]
+}
+,
+{
+"Name": "segment_1474738663308.86_file_00002",
+"ActionOnFailure": "CONTINUE",
+"Jar": "/usr/lib/hadoop-mapreduce/hadoop-streaming.jar",
+"Args":
+[
+"-files", "s3://scriptspdc60austin/decScripts/Mapper.py,s3://scriptspdc60austin/decScripts/Reducer.py",
+"-mapper", "Mapper.py",
+"-reducer", "Reducer.py",
+"-input", "s3://commoncrawl/crawl-data/CC-MAIN-2016-40/segments/1474738663308.86/wet/CC-MAIN-20160924173743-00002-ip-10-143-35-109.ec2.internal.warc.wet.gz",
+"-output", "s3://outputpdc60austin/1474738663308.86_00002",
+"-inputformat", "TextInputFormat"
+]
+}
+,
+{
+"Name": "segment_1474738663308.86_file_00003",
+"ActionOnFailure": "CONTINUE",
+"Jar": "/usr/lib/hadoop-mapreduce/hadoop-streaming.jar",
+"Args":
+[
+"-files", "s3://scriptspdc60austin/decScripts/Mapper.py,s3://scriptspdc60austin/decScripts/Reducer.py",
+"-mapper", "Mapper.py",
+"-reducer", "Reducer.py",
+"-input", "s3://commoncrawl/crawl-data/CC-MAIN-2016-40/segments/1474738663308.86/wet/CC-MAIN-20160924173743-00003-ip-10-143-35-109.ec2.internal.warc.wet.gz",
+"-output", "s3://outputpdc60austin/1474738663308.86_00003",
+"-inputformat", "TextInputFormat"
+]
+}]
